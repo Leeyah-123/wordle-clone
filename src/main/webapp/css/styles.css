@@ -96,6 +96,7 @@ body {
   --error-background: #e3e3e1;
   --icon-disabled: #a6a6a6;
 }
+
 :root {
   --green: #6aaa64;
   --darkendGreen: #538d4e;
@@ -205,9 +206,21 @@ button {
   font-weight: bold;
   vertical-align: middle;
   box-sizing: border-box;
-  color: var(--color-tone-7);
+  color: var(--tile-text-color);
   text-transform: uppercase;
   user-select: none;
+}
+
+.tile.flip {
+  animation: flip 1000ms ease-in-out;
+}
+
+.tile.shake {
+  animation: shake 250ms ease-in-out;
+}
+
+.tile.dance {
+  animation: dance 500ms ease-in-out;
 }
 
 .switch {
@@ -234,17 +247,14 @@ button {
 
 .tile[data-state='absent'] {
   background-color: var(--color-absent);
-  color: var(--color-tone-1);
 }
 
 .tile[data-state='correct'] {
   background-color: var(--color-correct);
-  color: var(--color-tone-1);
 }
 
 .tile[data-state='present'] {
   background-color: var(--color-present);
-  color: var(--color-tone-1);
 }
 
 .wordle-game {
@@ -528,6 +538,11 @@ button {
   font-size: 12px;
   line-height: 18px;
   background-color: transparent;
+  width: fit-content;
+}
+
+.num-guesses-filled {
+  float: right;
 }
 
 #fail-toast-container {
@@ -574,6 +589,71 @@ button {
   width: 100%;
   border-top: 1px solid var(--color-tone-9);
   display: none;
+}
+
+.next-button {
+    background-color: var(--key-bg-correct);
+    color: var(--key-evaluated-text-color);
+    border-radius: 104px;
+    border: none;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 16px;
+    width: 50%;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+.next-text {
+  color: var(--white);
+}
+
+@keyframes flip {
+  60% {
+    transform: rotateX(90deg);
+  }
+}
+
+@keyframes shake {
+  10% {
+    transform: translateX(-5%);
+  }
+  30% {
+    transform: translateX(5%);
+  }
+  50% {
+    transform: translateX(-7.5%);
+  }
+  70% {
+    transform: translateX(7.5%);
+  }
+  90% {
+    transform: translateX(-5%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+@keyframes dance {
+  20% {
+    transform: translateY(-50%);
+  }
+  40% {
+    transform: translateY(5%);
+  }
+  60% {
+    transform: translateY(-25%);
+  }
+  80% {
+    transform: translateY(2.5%);
+  }
+  90% {
+    transform: translateY(-5%);
+  }
+  100% {
+    transform: translateY(0%);
+  }
 }
 
 @media (min-width: 415px) {

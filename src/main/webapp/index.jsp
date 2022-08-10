@@ -16,12 +16,12 @@
             crossorigin="anonymous"
     />
     <link rel="stylesheet" href="css/styles.css" />
-    <link
-            rel="stylesheet"
-            href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
-            integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ"
-            crossorigin="anonymous"
-    />
+<%--    <link--%>
+<%--            rel="stylesheet"--%>
+<%--            href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"--%>
+<%--            integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ"--%>
+<%--            crossorigin="anonymous"--%>
+<%--    />--%>
     <title>Wordle - The New York Times</title>
     <style>
         .close:not(:disabled):not(.disabled):hover {
@@ -465,7 +465,7 @@
                             <p><strong>Examples</strong></p>
                             <div class="example" aria-label="weary">
                                 <div class="tile-container">
-                                    <div class="tile" data-state="correct" data-animation="idle">w</div>
+                                    <div class="tile" data-state="correct" data-animation="idle" id="letterW"></div>
                                 </div>
                                 <div class="tile-container">
                                     <div class="tile" data-state="tbd" data-animation="idle">e</div>
@@ -486,7 +486,7 @@
                                     <div class="tile" data-state="tbd" data-animation="idle">p</div>
                                 </div>
                                 <div class="tile-container">
-                                    <div class="tile" data-state="present" data-animation="idle">i</div>
+                                    <div class="tile" data-state="present" data-animation="idle" id="letterI"></div>
                                 </div>
                                 <div class="tile-container">
                                     <div class="tile" data-state="tbd" data-animation="idle">l</div>
@@ -510,7 +510,7 @@
                                     <div class="tile" data-state="tbd" data-animation="idle">g</div>
                                 </div>
                                 <div class="tile-container">
-                                    <div class="tile" data-state="absent" data-animation="idle">u</div>
+                                    <div class="tile" data-state="absent" data-animation="idle" id="letterU"></div>
                                 </div>
                                 <div class="tile-container">
                                     <div class="tile" data-state="tbd" data-animation="idle">e</div>
@@ -607,12 +607,15 @@
                 </div>
             </div>
             <div class="statistics-footer">
-                <p>NEXT WORDLE</p>
-                <div class="statistics-container">
-                    <div class="statistic timer-container">
-                        <div id="timer" data-testid="timer"></div>
-                    </div>
-                </div>
+                <button type="button" class="next-button">
+                    <span class="next-text">Next</span>
+                </button>
+<%--                <p>NEXT WORDLE</p>--%>
+<%--                <div class="statistics-container">--%>
+<%--                    <div class="statistic timer-container">--%>
+<%--                        <div id="timer" data-testid="timer"></div>--%>
+<%--                    </div>--%>
+<%--                </div>--%>
             </div>
         </div>
     </div>

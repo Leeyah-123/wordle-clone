@@ -46,12 +46,9 @@ window.onload = function () {
         switchKnob.classList.add("switchKnob-checked")
     }
 
-    // if (getCookie("lastPlayed") !== (new Date).toUTCString()) {
-        // refreshTiles()
-        // refreshKeyboard()
-        // refreshCookies()
-    // } else
-        setBoard()
+    setBoard()
+
+    if (getCookie("gameStatus") === "FAIL") writeToToast("fail","The correct word is: " + getCookie("solution").toUpperCase())
 
     if (getCookie("__u_id") === "") {
         $('#instructions').modal('show')
@@ -134,8 +131,16 @@ window.onload = function () {
         }
     })
 
+    document.querySelector(".next-button").addEventListener("click", function() {
+        document.getElementById("fail-toast-container").innerHTML = "";
+        refreshTiles()
+        refreshKeyboard()
+        refreshCookies()
+        $('#statistics').modal('hide')
+    })
+
     $('#statistics').on('shown.bs.modal', function () {
-        if (getCookie("gameStatus") !== "IN_PROGRESS") setTimer();
+        if (getCookie("gameStatus") !== "IN_PROGRESS") showNextButton();
         let statisticsDiv;
         let guessDistribution;
 
@@ -205,12 +210,13 @@ window.onload = function () {
                 else if (guess === 5) guessNum = five
                 else guessNum = six
 
-                let barWidth = Math.ceil(guessNum / timesPlayed) * 100
+                let barWidth = Math.ceil((guessNum / timesPlayed) * 100)
 
                 if (guessNum === 0) graphBar.style.width = "8px"
                 else {
                     graphBar.style.width = barWidth.toString() + "%"
                     graphBar.classList.add("graph-bar-filled")
+                    numGuesses.classList.add("num-guesses-filled")
                 }
                 numGuesses.innerText = ""
                 numGuesses.insertAdjacentText("afterbegin", guessNum)
@@ -221,18 +227,61 @@ window.onload = function () {
             }
         }
     })
+
+    $('#instructions').on('shown.bs.modal', function () {
+        let wTile = document.getElementById("letterW")
+        wTile.innerText = ""
+        setTimeout(() => {
+            wTile.classList.add("flip")
+            wTile.insertAdjacentText("afterbegin", "w")
+            wTile.addEventListener("transitionend", () => {
+                wTile.classList.remove("flip")
+            })
+        }, (250))
+
+        let iTile = document.getElementById("letterI")
+        iTile.innerText = ""
+        setTimeout(() => {
+            iTile.classList.add("flip")
+            iTile.insertAdjacentText("afterbegin", "i")
+            iTile.addEventListener("transitionend", () => {
+                iTile.classList.remove("flip")
+            })
+        }, (250))
+
+        let uTile = document.getElementById("letterU")
+        uTile.innerText = ""
+        setTimeout(() => {
+            uTile.classList.add("flip")
+            uTile.insertAdjacentText("afterbegin", "u")
+            uTile.addEventListener("transitionend", () => {
+                uTile.classList.remove("flip")
+            })
+        }, (250))
+    })
 }
 
 function validateGuess(guess) {
+    let tileBoard = document.querySelector(".board-row").parentElement
+    let currentTileRow = tileBoard.children.item(Number.parseInt(getCookie("currentRowIndex")))
+
     $.ajax({
         type : "post",
         url : 'validate-guess-servlet',
         data : {
-            guess: guess
+            guess: guess,
+            rowIndex: Number.parseInt(getCookie("currentRowIndex")) + 1
         },
         success : function(responseText) {
             if (responseText === "[]") {
                 writeToToast("not_in_word_list", "Not in word list");
+                for (let i = 0; i < 5; i++) {
+                    let tile = currentTileRow.children.item(i).firstElementChild
+                    tile.classList.add("shake")
+                    tile.addEventListener("animationend", () => {
+                        tile.classList.remove("shake")
+                    })
+                }
                 return;
             }
             flipTiles(responseText)
@@ -244,7 +293,6 @@ function validateGuess(guess) {
 function updateStatistics(event, index) {
     let id = getCookie("__u_id")
     if (id === "") id = "0"
-    let isSuccessful = ""
     $.ajax({
         type: "post",
         url: 'statistics-servlet',
@@ -254,7 +302,6 @@ function updateStatistics(event, index) {
             rowIndex: index
         }
     })
-    return "isSuccessful";
 }
 
 function getBoardState() {
@@ -352,6 +399,8 @@ function getStatistics() {
 
 function setBoard() {
     let tileBoard = document.querySelector(".board-row").parentElement
+    let keyboardLetters = document.querySelectorAll(".letter")
+
     let array = getBoardState()
     let evaluations = getEvaluations()
     let evaluation;
@@ -386,6 +435,18 @@ function setBoard() {
             let tile = currentTileRow.children.item(j).firstElementChild
             tile.insertAdjacentText("afterbegin", array[i].trim().charAt(j))
             tile.setAttribute("data-state", evaluation[j].trim())
+            // setTimeout(() => {
+                tile.classList.add("flip")
+                tile.addEventListener("transitionend", () => {
+                    tile.classList.remove("flip")
+                })
+            // }, (j * 500)/2)
+
+            keyboardLetters.forEach(letter => {
+                if (letter.getAttribute("data-state") === "correct") return;
+                if (letter.getAttribute("data-state") === "present" && evaluation[j].trim() !== "correct") return;
+                if (letter.getAttribute("data-key") === array[i].trim().charAt(j)) letter.setAttribute("data-state", evaluation[j].trim());
+            })
         }
         currentRowIndex += 1
     }
@@ -400,7 +461,17 @@ function flipTiles(validated) {
     if (validated === "[correct]") {
         for (let i = 0; i < 5; i++) {
             let tile = currentTileRow.children.item(i).firstElementChild
-            tile.setAttribute("data-state", "correct")
+            setTimeout(() => {
+                tile.classList.add("flip")
+                tile.setAttribute("data-state", "correct")
+                tile.addEventListener("transitionend", () => {
+                    tile.classList.remove("flip")
+                    tile.classList.add("dance")
+                    tile.addEventListener("transitionend", () => {
+                        tile.classList.remove("dance")
+                    })
+                })
+            }, (i * 1000)/2)
         }
     } else {
         let array = validated.split(",")
@@ -410,7 +481,13 @@ function flipTiles(validated) {
         array[4] = last_word_array[0]
         for (let i = 0; i < 5; i++) {
             let tile = currentTileRow.children.item(i).firstElementChild
-            tile.setAttribute("data-state", array[i].trim())
+            setTimeout(() => {
+                tile.classList.add("flip")
+                tile.setAttribute("data-state", array[i].trim())
+                tile.addEventListener("transitionend", () => {
+                    tile.classList.remove("flip")
+                })
+            }, (i * 500)/2)
         }
     }
 }
@@ -434,10 +511,12 @@ function updateKeyboard(word, validated) {
         else if (rowIndex === 3) writeToToast("win", "Splendid")
         else if (rowIndex === 4) writeToToast("win", "Great")
         else writeToToast("win", "Phew")
+        updateStatistics("win", Number.parseInt(getCookie("currentRowIndex")));
         setBoardState(Number.parseInt(getCookie("currentRowIndex")), word)
         setEvaluations(Number.parseInt(getCookie("currentRowIndex")), validated)
-        if (updateStatistics( "win", rowIndex) === "success") $('#statistics').modal('show');
-        setCookie("lastPlayed", (new Date()).toUTCString())
+        setTimeout(() => {
+            $('#statistics').modal('show');
+        }, 2000)
 
     } else {
         let array = validated.split(",")
@@ -454,11 +533,10 @@ function updateKeyboard(word, validated) {
         }
 
         if (Number.parseInt(getCookie("currentRowIndex")) === 5) {
-            writeToToast("fail","The correct word is ")
+            writeToToast("fail","The correct word is: " + getCookie("solution").toUpperCase())
             setCookie("gameStatus", "FAIL")
             updateStatistics("fail", Number.parseInt(getCookie("currentRowIndex")));
             $('#statistics').modal('show')
-            setCookie("lastPlayed", (new Date()).toUTCString())
         }
         setBoardState(Number.parseInt(getCookie("currentRowIndex")), word)
         setEvaluations(Number.parseInt(getCookie("currentRowIndex")), validated)
@@ -507,7 +585,7 @@ function refreshTiles() {
 
     for (let i = 0; i < 6; i++) {
         let currentTileRow = tileBoard.children.item(i)
-        for (let j = 0; j < 5; i++) {
+        for (let j = 0; j < 5; j++) {
             let tile = currentTileRow.children.item(j).firstElementChild
             tile.innerText = ""
             tile.setAttribute("data-state", "empty")
@@ -518,11 +596,9 @@ function refreshTiles() {
 function refreshKeyboard() {
     let keyboardLetters = document.querySelectorAll(".letter")
 
-    for (let i = 0; i < 5; i++) {
-        keyboardLetters.forEach(letter => {
-            letter.setAttribute("data-state", "")
-        })
-    }
+    keyboardLetters.forEach(letter => {
+        letter.setAttribute("data-state", "")
+    })
 }
 
 function refreshCookies() {
@@ -532,38 +608,37 @@ function refreshCookies() {
     setCookie("currentRowIndex", 0)
 }
 
-function setTimer() {
+function showNextButton() {
     let footer = document.querySelector(".statistics-footer")
     footer.style.display = "block";
-
-    let div = document.getElementById("timer")
-    setInterval(function(){
-        let toDate=new Date();
-        let tomorrow=new Date();
-
-        tomorrow.setHours(24,0,0,0);
-        let diffMS=tomorrow.getTime()/1000-toDate.getTime()/1000;
-        let diffHr=Math.floor(diffMS/3600);
-
-        diffMS=diffMS-diffHr*3600;
-        let diffMi=Math.floor(diffMS/60);
-        diffMS=diffMS-diffMi*60;
-
-        let diffS=Math.floor(diffMS);
-        let result=((diffHr<10)?"0"+diffHr:diffHr);
-        result+=":"+((diffMi<10)?"0"+diffMi:diffMi);
-        result+=":"+((diffS<10)?"0"+diffS:diffS);
-
-        if (diffHr === 0 && diffMi === 0 && diffS === 0) {
-            footer.style.display = "none";
-            refreshTiles()
-            refreshKeyboard()
-            refreshCookies()
-            return;
-        }
-
-        div.innerHTML=result;
-    },1000);
+    // let div = document.getElementById("timer")
+    // setInterval(function(){
+    //     let toDate=new Date();
+    //     let tomorrow=new Date();
+    //
+    //     tomorrow.setHours(24,0,0,0);
+    //     let diffMS=tomorrow.getTime()/1000-toDate.getTime()/1000;
+    //     let diffHr=Math.floor(diffMS/3600);
+    //
+    //     diffMS=diffMS-diffHr*3600;
+    //     let diffMi=Math.floor(diffMS/60);
+    //     diffMS=diffMS-diffMi*60;
+    //
+    //     let diffS=Math.floor(diffMS);
+    //     let result=((diffHr<10)?"0"+diffHr:diffHr);
+    //     result+=":"+((diffMi<10)?"0"+diffMi:diffMi);
+    //     result+=":"+((diffS<10)?"0"+diffS:diffS);
+    //
+    //     if (diffHr === 0 && diffMi === 0 && diffS === 0) {
+    //         footer.style.display = "none";
+    //         refreshTiles()
+    //         refreshKeyboard()
+    //         refreshCookies()
+    //         return;
+    //     }
+    //
+    //     div.innerHTML=result;
+    // },1000);
 }
 
 function setCookie(cname, cvalue) {
@@ -589,10 +664,10 @@ function getCookie(cname) {
 
 function animateHeightAndWidth(item) {
     $(item).animate({
-        width: "50px",
-        height: "50px",
-    }, 250).animate({
-        width: "40px",
-        height: "40px",
-    }, 250)
+        width: "102%",
+        height: "102%",
+    }, 80).animate({
+        width: "100%",
+        height: "100%",
+    }, 80)
 }

@@ -10,8 +10,6 @@ import java.sql.SQLException;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 
 @WebServlet(name = "StatisticsServlet", value = "/statistics-servlet")
 public class StatisticsServlet extends HttpServlet {
@@ -35,13 +33,13 @@ public class StatisticsServlet extends HttpServlet {
         Date lastCompleted = null;
         java.util.Date currentDate = new java.util.Date();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        LocalDate currentLocalDate = LocalDate.parse(dateFormat.format(currentDate));
+//        LocalDate currentLocalDate = LocalDate.parse(dateFormat.format(currentDate));
 
         if (id == 0) {
             id = StatisticsDB.generateID();
             Cookie userIDCookie = new Cookie("__u_id", String.valueOf(id));
             userIDCookie.setPath("/");
-            userIDCookie.setMaxAge(2147483647 * 1000);
+            userIDCookie.setMaxAge(60 * 60 * 24 * 365 * 10);
             response.addCookie(userIDCookie);
         }
 
@@ -66,11 +64,11 @@ public class StatisticsServlet extends HttpServlet {
             throw new RuntimeException(e);
         }
 
-        LocalDate lastCompletedLocalDate = LocalDate.parse(dateFormat.format(lastCompleted));
-        long daysBetween = ChronoUnit.DAYS.between(lastCompletedLocalDate, currentLocalDate);
-        if (daysBetween != 1) {
-            currentStreak = 0;
-        }
+//        LocalDate lastCompletedLocalDate = LocalDate.parse(dateFormat.format(lastCompleted));
+//        long daysBetween = ChronoUnit.DAYS.between(lastCompletedLocalDate, currentLocalDate);
+//        if (daysBetween != 1) {
+//            currentStreak = 0;
+//        }
 
         if (event.equals("win")) {
             if (rowIndex == 0) {
@@ -97,17 +95,6 @@ public class StatisticsServlet extends HttpServlet {
         winPercentage = (int) (Math.ceil(((double)timesWon/(double)timesPlayed)*100));
 
         Gson gson = new Gson();
-        HashMap<String, Integer> userStatistics = new HashMap<>();
-        userStatistics.put("one", one);
-        userStatistics.put("two", two);
-        userStatistics.put("three", three);
-        userStatistics.put("four", four);
-        userStatistics.put("five", five);
-        userStatistics.put("six", six);
-        userStatistics.put("timesPlayed", timesPlayed);
-        userStatistics.put("winPercentage", winPercentage);
-        userStatistics.put("currentStreak", currentStreak);
-        userStatistics.put("maxStreak", maxStreak);
 
         String dictionary = "{" +
                 "one: " + one + "," +
@@ -124,7 +111,7 @@ public class StatisticsServlet extends HttpServlet {
 
         Cookie cookie = new Cookie("stats", gson.toJson(dictionary));
         cookie.setPath("/");
-        cookie.setMaxAge(2147483647 * 1000);
+        cookie.setMaxAge(60 * 60 * 24 * 365 * 10);
         response.addCookie(cookie);
 
         if (event.equals("WIN")) StatisticsDB.updateStatistics(one, two, three, four, five, six, timesPlayed, timesWon, timesLost, winPercentage, currentStreak, maxStreak, id);
