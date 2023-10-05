@@ -93,7 +93,10 @@ window.onload = function () {
             for (let i = 0; i < 5; i++) {
                 let tile = currentTileRow.children.item(i).firstElementChild
                 if (tile.getAttribute("data-state") === "empty") {
-                    animateHeightAndWidth(tile)
+                    tile.classList.add('increase-and-decrease')
+                    tile.addEventListener('transitionend', () => {
+                        tile.classList.remove('increase-and-decrease')
+                    })
                     tile.setAttribute("data-state", "tbd")
                     tile.insertAdjacentText("afterbegin", letter.getAttribute("data-key"))
                     break;
@@ -126,6 +129,10 @@ window.onload = function () {
             if (tile.getAttribute("data-state") !== "empty") {
                 tile.innerText = ""
                 tile.setAttribute("data-state", "empty")
+                if (tile.classList.contains('increase-and-decrease')) tile.classList.remove('increase-and-decrease');
+                if (tile.classList.contains('shake')) tile.classList.remove('shake');
+                if (tile.classList.contains('dance')) tile.classList.remove('dance');
+                if (tile.classList.contains('flip')) tile.classList.remove('flip');
                 break;
             }
         }
@@ -133,6 +140,15 @@ window.onload = function () {
 
     document.querySelector(".next-button").addEventListener("click", function() {
         document.getElementById("fail-toast-container").innerHTML = "";
+        let guessDistribution = document.querySelector(".guess-distribution")
+        for (let i = 0; i < 6; i++) {
+            let graphContainer = guessDistribution.children.item(i)
+            let graphBar = graphContainer.lastElementChild
+
+            if (graphBar.classList.contains("graph-bar-correct")){
+                graphBar.classList.remove("graph-bar-correct");
+            }
+        }
         refreshTiles()
         refreshKeyboard()
         refreshCookies()
@@ -436,10 +452,10 @@ function setBoard() {
             tile.insertAdjacentText("afterbegin", array[i].trim().charAt(j))
             tile.setAttribute("data-state", evaluation[j].trim())
             // setTimeout(() => {
-                tile.classList.add("flip")
-                tile.addEventListener("transitionend", () => {
-                    tile.classList.remove("flip")
-                })
+            tile.classList.add("flip")
+            tile.addEventListener("transitionend", () => {
+                tile.classList.remove("flip")
+            })
             // }, (j * 500)/2)
 
             keyboardLetters.forEach(letter => {
@@ -466,12 +482,17 @@ function flipTiles(validated) {
                 tile.setAttribute("data-state", "correct")
                 tile.addEventListener("transitionend", () => {
                     tile.classList.remove("flip")
-                    tile.classList.add("dance")
-                    tile.addEventListener("transitionend", () => {
-                        tile.classList.remove("dance")
-                    })
                 })
-            }, (i * 1000)/2)
+            }, (i * 500)/2)
+        }
+        for (let i = 0; i < 5; i++) {
+            let tile = currentTileRow.children.item(i).firstElementChild
+            setTimeout(() => {
+                tile.classList.add("dance")
+                tile.addEventListener("transitionend", () => {
+                    tile.classList.remove("dance")
+                })
+            }, ((i * 500)/2) + 1500)
         }
     } else {
         let array = validated.split(",")
@@ -589,6 +610,10 @@ function refreshTiles() {
             let tile = currentTileRow.children.item(j).firstElementChild
             tile.innerText = ""
             tile.setAttribute("data-state", "empty")
+            if (tile.classList.contains('increase-and-decrease')) tile.classList.remove('increase-and-decrease');
+            if (tile.classList.contains('flip')) tile.classList.remove('flip');
+            if (tile.classList.contains('shake')) tile.classList.remove('shake');
+            if (tile.classList.contains('dance')) tile.classList.remove('dance');
         }
     }
 }
@@ -660,14 +685,4 @@ function getCookie(cname) {
         }
     }
     return "";
-}
-
-function animateHeightAndWidth(item) {
-    $(item).animate({
-        width: "102%",
-        height: "102%",
-    }, 80).animate({
-        width: "100%",
-        height: "100%",
-    }, 80)
 }

@@ -223,10 +223,8 @@ button {
   animation: dance 500ms ease-in-out;
 }
 
-.switch {
-  transform-style: preserve-3d;
-  transform: rotateX(360deg);
-  transition: transform 0.3s;
+.tile.increase-and-decrease {
+  animation: increaseAndDecrease 150ms none;
 }
 
 .tile::before {
@@ -602,6 +600,9 @@ button {
     width: 50%;
     vertical-align: middle;
     cursor: pointer;
+    height: 24px;
+    justify-content: center;
+    padding-top: 10px;
 }
 
 .next-text {
@@ -609,8 +610,11 @@ button {
 }
 
 @keyframes flip {
+  10% {
+      transform: rotateX(0deg);
+  }
   60% {
-    transform: rotateX(90deg);
+      transform: rotateX(90deg);
   }
 }
 
@@ -653,6 +657,13 @@ button {
   }
   100% {
     transform: translateY(0%);
+  }
+}
+
+@keyframes increaseAndDecrease {
+  0% {
+    transform: scaleX(110%);
+    transform: scaleY(110%);
   }
 }
 
